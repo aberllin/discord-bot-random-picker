@@ -5,13 +5,27 @@ import { config } from 'dotenv';
 
 config();
 
+export enum CommandName {
+    PickRandom = 'pickrandom',
+    DefineOrder = 'defineorder'
+}
+
 const commands = [
     new SlashCommandBuilder()
-        .setName('pickrandom')
+        .setName(CommandName.PickRandom)
         .setDescription('Pick a random participant from the selected list.')
         .addStringOption(option => 
             option.setName('members')
                 .setDescription('Mention members to pick from')
+                .setRequired(true)
+        ),
+
+    new SlashCommandBuilder()
+        .setName(CommandName.DefineOrder)
+        .setDescription('Randomly order the selected participants.')
+        .addStringOption(option => 
+            option.setName('members')
+                .setDescription('Mention members to define order for')
                 .setRequired(true)
         ),
 ].map(command => command.toJSON());
@@ -36,3 +50,4 @@ const rest = new REST({ version: '9' }).setToken(botToken);
         console.error(error);
     }
 })();
+
