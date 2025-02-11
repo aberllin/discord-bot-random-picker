@@ -11,38 +11,29 @@ const client = new Client({
         GatewayIntentBits.GuildMembers, 
     ] 
 });
-//
-type GuildMembersMap = {
-    [guildId: string]: Array<string>;
-}
 
-let selectedMembers: GuildMembersMap = {}; // Store selected members per guild
 
 client.once('ready', () => {
     console.log(`Logged in as ${client.user?.tag}!`);
 });
 
 client.on('interactionCreate', async (interaction) => {
-    if (!interaction.isChatInputCommand()) return; 
+    if (!interaction.isChatInputCommand()) return;
 
     if (interaction.commandName === CommandName.PickRandom) {
-        const guild: Guild | null = interaction.guild;
+        const guild = interaction.guild;
         if (!guild) return;
 
         const args = interaction.options.get('members')?.value as string | undefined;
-        let membersToPick: string[] = [];
-
-        if (args) {
-            const memberMentions = args.match(/<@!?(\d+)>/g) || [];
-            membersToPick = memberMentions.map(mention => mention.replace(/\D/g, ''));
-
-            selectedMembers[guild.id] = membersToPick;
-        } else if (selectedMembers[guild.id]?.length) {
-            membersToPick = selectedMembers[guild.id];
+        if (!args) {
+            return interaction.reply("You must provide a list of members to pick from!");
         }
 
+        const memberMentions = args.match(/<@!?(\d+)>/g) || [];
+        const membersToPick = memberMentions.map(mention => mention.replace(/\D/g, ''));
+
         if (!membersToPick.length) {
-            return interaction.reply("No members selected before. Please provide members at least once.");
+            return interaction.reply("No valid members mentioned. Please mention users properly.");
         }
 
         const randomMemberId = randomPick(membersToPick);
@@ -54,17 +45,15 @@ client.on('interactionCreate', async (interaction) => {
         if (!guild) return;
 
         const args = interaction.options.get('members')?.value as string | undefined;
-        let membersToOrder: Array<string> = [];
-
-        if (args) {
-            const memberMentions = args.match(/<@!?(\d+)>/g) || [];
-            membersToOrder = memberMentions.map(mention => mention.replace(/\D/g, ''));
-        } else if (selectedMembers[guild.id]?.length) {
-            membersToOrder = [...selectedMembers[guild.id]];
+        if (!args) {
+            return interaction.reply("You must provide a list of members to define an order!");
         }
 
+        const memberMentions = args.match(/<@!?(\d+)>/g) || [];
+        const membersToOrder = memberMentions.map(mention => mention.replace(/\D/g, ''));
+
         if (!membersToOrder.length) {
-            return interaction.reply("No members selected before. Please provide members at least once.");
+            return interaction.reply("No valid members mentioned. Please mention users properly.");
         }
 
         // Shuffle the array
@@ -79,4 +68,3 @@ client.on('interactionCreate', async (interaction) => {
 });
 
 client.login(process.env.DISCORD_BOT_TOKEN);
-
